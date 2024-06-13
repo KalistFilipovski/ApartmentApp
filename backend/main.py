@@ -1,18 +1,19 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from forms.user_form import RegisterForm, LoginForm
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, LoginManager, logout_user, login_required
-from models.user_model import User
+from flask_login import login_user, LoginManager, logout_user, login_required, current_user
+from models.user_model import User, db
+import os
 
 # Initializing Flask app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+template_dir = os.path.abspath('../frontend/templates')
+app = Flask(__name__, template_folder=template_dir)
+app.config['SECRET_KEY'] = '@$(aegta$*ae@)'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initializing SQLAlchemy database
-db = SQLAlchemy(app)
+db.init_app(app)
 
 # Initializing Flask-Login
 login_manager = LoginManager()
@@ -27,13 +28,19 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Index route
+@app.route('/')
+def index():
+    user = current_user if current_user.is_authenticated else None
+    return render_template('index.html', current_user=user)
+
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = User(name=form.name.data, email=form.email.data, password=hashed_password)
+        hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
+        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, full_name=form.full_name.data, bio=form.bio.data)
         db.session.add(new_user)
         db.session.commit()
         flash('Account created successfully. You can now log in.', 'success')
