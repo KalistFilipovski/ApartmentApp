@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Apartments{% endblock %}
+
+{% block content %}
+    <div class="row ">
+        <div class="col-md-10">
+            <h2 class="pb-4">List of Apartments</h2>
+            <div class="list-group">
+                {% for apartment in apartments %}
+                    <div class="list-group-item">
+                        <h3>{{ apartment.name }}</h3>
+                        <p><strong>Location:</strong> {{ apartment.location }}</p>
+                        <p><strong>Description:</strong> {{ apartment.description }}</p>
+                        <p><strong>Price:</strong> ${{ apartment.price }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+asds
