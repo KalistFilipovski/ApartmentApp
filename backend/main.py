@@ -1,9 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, flash
-from forms.user_form import RegisterForm, LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, logout_user, login_required, current_user
-from models.user_model import User, db
 import os
+
+from models.user_model import User, db
+from models.apartment_model import Apartment
+
+from forms.user_form import RegisterForm, LoginForm
+from forms.apartment_form import ApartmentForm  
+
 
 # Initializing Flask app
 template_dir = os.path.abspath('../frontend/templates')
@@ -68,6 +73,30 @@ def logout():
     logout_user()
     flash('Logged out successfully.', 'success')
     return redirect(url_for('index'))
+
+# Apartment management routes
+@app.route('/admin/apartments', methods=['GET', 'POST'])
+@login_required
+def manage_apartments():
+    if not current_user.is_admin:
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    form = ApartmentForm()
+    if form.validate_on_submit():
+        new_apartment = Apartment(
+            name=form.name.data,
+            location=form.location.data,
+            description=form.description.data,
+            price=form.price.data
+        )
+        db.session.add(new_apartment)
+        db.session.commit()
+        flash('Apartment added successfully.', 'success')
+        return redirect(url_for('manage_apartments'))
+    
+    apartments = Apartment.query.all()
+    return render_template('manage_apartments.html', form=form, apartments=apartments)
 
 # Running the app
 if __name__ == '__main__':
