@@ -1,14 +1,14 @@
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
+from forms.user_form import RegisterForm, LoginForm
+from forms.apartment_form import ApartmentForm
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_login import login_user, LoginManager, logout_user, login_required, current_user
-import os
-
 from models.user_model import User, db
 from models.apartment_model import Apartment
-
-from forms.user_form import RegisterForm, LoginForm
-from forms.apartment_form import ApartmentForm  
-
+from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
+import os
 
 # Initializing Flask app
 template_dir = os.path.abspath('../frontend/templates')
@@ -16,9 +16,19 @@ app = Flask(__name__, template_folder=template_dir)
 app.config['SECRET_KEY'] = '@$(aegta$*ae@)'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static/uploads')
+
+# Allowed extensions for file uploads
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # Initializing SQLAlchemy database
 db.init_app(app)
+
+# Initializing Flask-Migrate
+migrate = Migrate(app, db)
+
+# Initializing CSRF protection
+csrf = CSRFProtect(app)
 
 # Initializing Flask-Login
 login_manager = LoginManager()
@@ -28,6 +38,10 @@ login_manager.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Loading user by ID for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
@@ -36,15 +50,10 @@ def load_user(user_id):
 # Index route
 @app.route('/')
 def index():
-    user = current_user if current_user.is_authenticated else None
-    return render_template('index.html', current_user=user)
-
-# User profile route
-@app.route('/profile')
-@login_required
-def profile():
-    user = current_user
-    return render_template('profile.html', user=user)
+    user = None
+    if current_user.is_authenticated:
+        user = current_user
+    return render_template('index.html', user=user)
 
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
@@ -81,37 +90,50 @@ def logout():
     flash('Logged out successfully.', 'success')
     return redirect(url_for('index'))
 
-# Apartment management route
-@app.route('/admin/apartments', methods=['GET', 'POST'])
+# User profile route
+@app.route('/profile')
 @login_required
-def create_apartments():
-    if not current_user.is_admin:
-        flash('You do not have permission to access this page.', 'error')
-        return redirect(url_for('index'))
-    
-    form = ApartmentForm()
-    if form.validate_on_submit():
-        new_apartment = Apartment(
-            name=form.name.data,
-            location=form.location.data,
-            description=form.description.data,
-            price=form.price.data
-        )
-        db.session.add(new_apartment)
-        db.session.commit()
-        flash('Apartment added successfully.', 'success')
-        return redirect(url_for('create_apartments'))
-    
-    return render_template('create_apartments.html', form=form)
+def profile():
+    return render_template('profile.html', user=current_user)
 
-# Apartment list route
+# List apartments route
 @app.route('/apartments')
 def list_apartments():
     apartments = Apartment.query.all()
     return render_template('list_apartments.html', apartments=apartments)
 
+# Manage apartments route
+@app.route('/create_apartments', methods=['GET', 'POST'])
+@login_required
+def create_apartments():
+    if not current_user.is_admin:
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('index'))
+
+    form = ApartmentForm()
+    if form.validate_on_submit():
+        if form.photo.data and allowed_file(form.photo.data.filename):
+            filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        else:
+            filename = None
+        new_apartment = Apartment(
+            name=form.name.data,
+            location=form.location.data,
+            description=form.description.data,
+            price=form.price.data,
+            photo=filename
+        )
+        db.session.add(new_apartment)
+        db.session.commit()
+        flash('Apartment added successfully.', 'success')
+        return redirect(url_for('list_apartments'))
+
+    apartments = Apartment.query.all()
+    return render_template('create_apartments.html', form=form, apartments=apartments)
+
 # Delete apartment route
-@app.route('/delete_apartment/<int:apartment_id>', methods=['DELETE'])
+@app.route('/delete_apartment/<int:apartment_id>', methods=['POST'])
 @login_required
 def delete_apartment(apartment_id):
     if not current_user.is_admin:
@@ -122,8 +144,14 @@ def delete_apartment(apartment_id):
     db.session.delete(apartment)
     db.session.commit()
     flash('Apartment deleted successfully.', 'success')
-    return redirect(url_for('manage_apartments'))
+    return redirect(url_for('list_apartments'))
 
-# Running the app
+# Apartment detail route
+@app.route('/apartment/<int:apartment_id>')
+def apartment_detail(apartment_id):
+    apartment = Apartment.query.get_or_404(apartment_id)
+    return render_template('detail_apartments.html', apartment=apartment)
+
+# Running the Flask app
 if __name__ == '__main__':
     app.run(debug=True)

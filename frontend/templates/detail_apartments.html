@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Apartment Details{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            <h2>{{ apartment.name }}</h2>
+            <p><strong>Location:</strong> {{ apartment.location }}</p>
+            <p><strong>Description:</strong> {{ apartment.description }}</p>
+            <p><strong>Price:</strong> ${{ apartment.price }}</p>
+        </div>
+        <div class="col-md-4 text-right">
+            {% if apartment.photo %}
+                <img src="{{ url_for('static', filename='uploads/' ~ apartment.photo) }}" alt="{{ apartment.name }}" class="img-fluid mb-2">
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
