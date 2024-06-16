@@ -3,17 +3,24 @@
 {% block title %}Apartment Details{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-8">
-            <h2>{{ apartment.name }}</h2>
-            <p><strong>Location:</strong> {{ apartment.location }}</p>
-            <p><strong>Description:</strong> {{ apartment.description }}</p>
-            <p><strong>Price:</strong> ${{ apartment.price }}</p>
-        </div>
-        <div class="col-md-4 text-right">
-            {% if apartment.photo %}
-                <img src="{{ url_for('static', filename='uploads/' ~ apartment.photo) }}" alt="{{ apartment.name }}" class="img-fluid mb-2">
-            {% endif %}
+    <div class="container mt-5">
+        <div class="card">
+            <div class="row no-gutters">
+                {% if apartment.photo %}
+                    <div class="col-md-6">
+                        <img src="{{ url_for('static', filename='uploads/' ~ apartment.photo) }}" alt="{{ apartment.name }}" class="card-img">
+                    </div>
+                {% endif %}
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ apartment.name }}</h2>
+                        <p class="card-text"><strong>Location:</strong> {{ apartment.location }}</p>
+                        <p class="card-text"><strong>Description:</strong> {{ apartment.description }}</p>
+                        <p class="card-text"><strong>Price:</strong> ${{ apartment.price }}</p>
+                        <a href="{{ url_for('list_apartments') }}" class="btn btn-primary mt-3">Back to Listings</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

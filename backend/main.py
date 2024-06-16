@@ -1,6 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, send_from_directory
 from forms.user_form import RegisterForm, LoginForm
 from forms.apartment_form import ApartmentForm
+from forms.upload_photo import UploadForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_user, LoginManager, logout_user, login_required, current_user
@@ -17,6 +18,7 @@ app.config['SECRET_KEY'] = '@$(aegta$*ae@)'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static/uploads')
+app.config['MAX_CONTENT_PATH'] = 16 * 1024 * 1024 
 
 # Allowed extensions for file uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -90,47 +92,42 @@ def logout():
     flash('Logged out successfully.', 'success')
     return redirect(url_for('index'))
 
-# User profile route
-@app.route('/profile')
-@login_required
-def profile():
-    return render_template('profile.html', user=current_user)
-
 # List apartments route
-@app.route('/apartments')
+@app.route('/apartments', methods=['GET', 'POST'])
 def list_apartments():
-    apartments = Apartment.query.all()
+    search = request.args.get('search')
+    if search:
+        apartments = Apartment.query.filter(Apartment.name.contains(search) | Apartment.location.contains(search)).all()
+    else:
+        apartments = Apartment.query.all()
     return render_template('list_apartments.html', apartments=apartments)
 
 # Manage apartments route
-@app.route('/create_apartments', methods=['GET', 'POST'])
-@login_required
-def create_apartments():
-    if not current_user.is_admin:
-        flash('You do not have permission to access this page.', 'danger')
-        return redirect(url_for('index'))
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+@app.route('/create_apartments', methods=['GET', 'POST'])
+def create_apartments():
     form = ApartmentForm()
     if form.validate_on_submit():
-        if form.photo.data and allowed_file(form.photo.data.filename):
-            filename = secure_filename(form.photo.data.filename)
-            form.photo.data.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        else:
-            filename = None
+        photo_filename = None
+        if form.photo.data:
+            photo_file = form.photo.data
+            photo_filename = secure_filename(photo_file.filename)
+            photo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+        
         new_apartment = Apartment(
             name=form.name.data,
             location=form.location.data,
             description=form.description.data,
             price=form.price.data,
-            photo=filename
+            photo=photo_filename
         )
         db.session.add(new_apartment)
         db.session.commit()
-        flash('Apartment added successfully.', 'success')
+        flash('Apartment created successfully!', 'success')
         return redirect(url_for('list_apartments'))
-
-    apartments = Apartment.query.all()
-    return render_template('create_apartments.html', form=form, apartments=apartments)
+    return render_template('create_apartments.html', form=form)
 
 # Delete apartment route
 @app.route('/delete_apartment/<int:apartment_id>', methods=['POST'])
@@ -151,6 +148,28 @@ def delete_apartment(apartment_id):
 def apartment_detail(apartment_id):
     apartment = Apartment.query.get_or_404(apartment_id)
     return render_template('detail_apartments.html', apartment=apartment)
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = UploadForm()
+    if form.validate_on_submit():
+        file = form.profile_image.data
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            current_user.profile_image = filename
+            db.session.commit()
+            flash('Profile image uploaded successfully', 'success')
+            return redirect(url_for('profile'))
+
+    profile_image_url = current_user.profile_image_url
+    return render_template('profile.html', user=current_user, profile_image_url=profile_image_url, form=form)
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Running the Flask app
 if __name__ == '__main__':

@@ -1,9 +1,23 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
-
 {% block content %}
-    <h2>Welcome to Apartment App</h2>
-    <p>This is the home page.</p>
-    {{ current_user.username }}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Welcome to Apartment App</h1>
+    <p class="lead">Find and rent your dream apartment in Italy easily and quickly.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h2>Find Apartments</h2>
+        <p>Browse our listings to find the perfect apartment for you and your family.</p>
+    </div>
+    <div class="col-md-4">
+        <h2>Contact Us</h2>
+        <p>Have questions? Reach out to our team for assistance and more information about our services.</p>
+    </div>
+    <div class="col-md-4">
+        <h2>Easy Renting</h2>
+        <p>Renting an apartment has never been easier. Our platform provides a seamless experience from search to move-in.</p>
+    </div>
+</div>
 {% endblock %}

@@ -2,52 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Flask App{% endblock %}</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <title>ApartmentApp</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
             background-color: #f8f9fa;
-            color: #343a40;
         }
+
         .navbar {
-            background-color: #007bff;
+            margin-bottom: 2rem;
         }
-        .navbar-brand, .nav-link {
-            color: #fff !important;
+
+        .jumbotron {
+            /* background-color: #353d46; */
+            /* color: white; */
+            padding: 4rem 1rem;
         }
-        .main-content {
-            flex: 1;
-            padding: 20px;
+
+        .jumbotron h1 {
+            font-size: 3rem;
         }
-        .footer {
-            background-color: #343a40;
-            color: #fff;
-            padding: 10px 0;
-            text-align: center;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
+
+        .container {
+            max-width: 960px;
         }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 1rem;
+        }
+
     </style>
 </head>
 <body>
     {% include 'navbar.html' %}
-    <main class="main-content container">
-        {% block content %}{% endblock %}
-    </main>
-    <footer class="footer">
-        <p>&copy; 2024 Your Company</p>
-    </footer>
-
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAt9m1ol-rXUqQnfq-4CaVf9bDbaZfgnQA&libraries=places"></script>
 </body>
 </html>
