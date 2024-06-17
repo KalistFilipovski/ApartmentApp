@@ -14,7 +14,8 @@
                 </div>
                 <div class="form-group">
                     {{ form.location.label(class="form-label") }}
-                    {{ form.location(class="form-control", id="location-input") }}
+                    <div id="location-input"></div>
+                    {{ form.location(class="form-control", id="location-field", style="display:none;") }}
                 </div>
                 <div class="form-group">
                     {{ form.description.label(class="form-label") }}
@@ -35,21 +36,26 @@
         </div>
     </div>
 
-    <!-- Google Places Autocomplete -->
+    <!-- Mapbox Autocomplete -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js'></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
     <script>
-        function initAutocomplete() {
-            var input = document.getElementById('location-input');
-            var autocomplete = new google.maps.places.Autocomplete(input);
-            autocomplete.setFields(['address_components', 'geometry', 'icon', 'name']);
-            autocomplete.addListener('place_changed', function() {
-                var place = autocomplete.getPlace();
-                if (!place.geometry) {
-                    window.alert("No details available for input: '" + place.name + "'");
-                    return;
-                }
-            });
-        }
+        mapboxgl.accessToken = 'pk.eyJ1Ijoid2lydGluaXVzMyIsImEiOiJjbHhpbXc4a3UxZ2QwMnFzam14Y2R6eWlnIn0.50YcZ7HPOXn9m-iuKjTCKA';
 
-        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+        var geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            placeholder: 'Enter location',
+            types: 'country,region,place,postcode,locality,neighborhood',
+            language: 'en' // Set language to English
+        });
+
+        geocoder.addTo('#location-input');
+
+        geocoder.on('result', function(e) {
+            var placeName = e.result.place_name;
+            document.getElementById('location-field').value = placeName;
+        });
     </script>
 {% endblock %}
+
