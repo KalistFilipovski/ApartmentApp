@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from flask import url_for
 db = SQLAlchemy()
 
+
 # User model
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -15,7 +16,8 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text)
     profile_image = db.Column(db.String(100), default='default.jpg')
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(),
+                           onupdate=db.func.current_timestamp())
     is_admin = db.Column(db.Boolean, default=False)
 
     def __repr__(self):

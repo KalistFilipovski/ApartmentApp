@@ -1,21 +1,29 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, TextAreaField
+from wtforms.validators import DataRequired, Email, Length
 
 
 # Form for registering a user
 class RegisterForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    full_name = StringField('Full Name', validators=[DataRequired()])
-    bio = TextAreaField('Bio')
-    submit = SubmitField('Sign Up')
+    username = StringField(
+        'Username', validators=[DataRequired(), Length(min=2, max=20)]
+    )
+    email = StringField(
+        'Email', validators=[DataRequired(), Email(), Length(min=6, max=50)]
+    )
+    password = PasswordField(
+        'Password', validators=[DataRequired(), Length(min=6, max=50)]
+    )
+    full_name = StringField(
+        'Full Name', validators=[DataRequired(), Length(min=2, max=50)]
+    )
+    bio = TextAreaField('Bio', validators=[Length(max=200)])
 
 
 # Form for logging in a user
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email = StringField(
+        'Email', validators=[DataRequired(), Email(), Length(min=6, max=50)]
+    )
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
