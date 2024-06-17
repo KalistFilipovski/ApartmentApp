@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Apartment{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1>Edit Apartment</h1>
+            <form method="POST" action="{{ url_for('edit_apartment', apartment_id=apartment.id) }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", value=apartment.name) }}
+                </div>
+                <div class="form-group">
+                    {{ form.location.label(class="form-label") }}
+                    <div id="location-input"></div>
+                    {{ form.location(class="form-control", id="location-field", value=apartment.location, style="display:none;") }}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", value=apartment.description) }}
+                </div>
+                <div class="form-group">
+                    {{ form.price.label(class="form-label") }}
+                    {{ form.price(class="form-control", value=apartment.price) }}
+                </div>
+                <div class="form-group">
+                    {{ form.photo.label(class="form-label") }}
+                    {{ form.photo(class="form-control-file") }}
+                    <small>Current photo: {{ apartment.photo }}</small>
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mapbox Autocomplete -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js'></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoid2lydGluaXVzMyIsImEiOiJjbHhpbXc4a3UxZ2QwMnFzam14Y2R6eWlnIn0.50YcZ7HPOXn9m-iuKjTCKA';
+
+        var geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            placeholder: 'Enter location',
+            types: 'country,region,place,postcode,locality,neighborhood',
+            language: 'en' 
+        });
+
+        geocoder.addTo('#location-input');
+
+        geocoder.on('result', function(e) {
+            var placeName = e.result.place_name;
+            document.getElementById('location-field').value = placeName;
+        });
+
+        // Initialize the location field with the current location value
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('location-field').value = "{{ apartment.location }}";
+        });
+    </script>
+{% endblock %}

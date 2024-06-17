@@ -31,6 +31,7 @@ migrate = Migrate(app, db)
 
 # Initializing CSRF protection
 csrf = CSRFProtect(app)
+csrf.init_app(app)
 
 # Initializing Flask-Login
 login_manager = LoginManager()
@@ -148,6 +149,38 @@ def delete_apartment(apartment_id):
 def apartment_detail(apartment_id):
     apartment = Apartment.query.get_or_404(apartment_id)
     return render_template('detail_apartments.html', apartment=apartment)
+
+# Apartment edit route
+
+@app.route('/apartment/<int:apartment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_apartment(apartment_id):
+    apartment = Apartment.query.get_or_404(apartment_id)
+    if not current_user.is_admin:
+        flash('You do not have permission to edit this apartment.')
+        return redirect(url_for('apartment_detail', apartment_id=apartment_id))
+
+    form = ApartmentForm(obj=apartment)
+    if form.validate_on_submit():
+        # Update fields
+        apartment.name = form.name.data
+        apartment.location = form.location.data
+        apartment.description = form.description.data
+        apartment.price = form.price.data
+        
+        # Handle file upload
+        if form.photo.data:
+            photo = form.photo.data
+            filename = secure_filename(photo.filename)
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            photo.save(photo_path)
+            apartment.photo = filename
+
+        db.session.commit()
+        flash('Apartment updated successfully.')
+        return redirect(url_for('apartment_detail', apartment_id=apartment.id))
+
+    return render_template('edit_apartment.html', form=form, apartment=apartment)
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required

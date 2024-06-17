@@ -9,4 +9,4 @@ class ApartmentForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     price = DecimalField('Price', validators=[DataRequired()])
     photo = FileField('Photo')
-    submit = SubmitField('Create')
+    submit = SubmitField('Submit')
