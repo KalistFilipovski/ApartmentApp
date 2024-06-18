@@ -7,7 +7,7 @@ class Apartment(db.Model):
     name = db.Column(db.String(150), nullable=False)
     location = db.Column(db.String(250), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Float, nullable=True)
     photo = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(),

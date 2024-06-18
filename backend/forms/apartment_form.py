@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, FileField
+from wtforms import StringField, TextAreaField, IntegerField, DecimalField
+from wtforms import FileField, SubmitField
 from wtforms.validators import DataRequired, Length
 
 
@@ -13,5 +14,6 @@ class ApartmentForm(FlaskForm):
     description = TextAreaField(
         'Description', validators=[DataRequired(), Length(min=10, max=500)]
     )
-    price = IntegerField('Price', validators=[DataRequired()])
+    price = DecimalField('Price')
     photo = FileField('Photo')
+    submit = SubmitField('submit')

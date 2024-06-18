@@ -68,6 +68,59 @@ def index():
     return render_template('index.html', user=user)
 
 
+# Initializing Flask app
+template_dir = os.path.abspath('../frontend/templates')
+app = Flask(__name__, template_folder=template_dir)
+app.config['SECRET_KEY'] = '@$(aegta$*ae@)'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static/uploads')
+app.config['MAX_CONTENT_PATH'] = 16 * 1024 * 1024
+
+# Allowed extensions for file uploads
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Initializing SQLAlchemy database
+db.init_app(app)
+
+# Initializing Flask-Migrate
+migrate = Migrate(app, db)
+
+# Initializing CSRF protection
+csrf = CSRFProtect(app)
+csrf.init_app(app)
+
+# Initializing Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect to login page if not logged in
+
+# Creating all tables in the database
+with app.app_context():
+    db.create_all()
+
+
+# Function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# Loading user by ID for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# Index route
+@app.route('/')
+def index():
+    user = None
+    if current_user.is_authenticated:
+        user = current_user
+    return render_template('index.html', user=user)
+
+
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -94,12 +147,18 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            flash('Logged in successfully.', 'success')
-            return redirect(url_for('index'))
+        if user:
+            print(f"User found: {user}")
+            if check_password_hash(user.password, form.password.data):
+                print("Password matched")
+                login_user(user)
+                flash('Logged in successfully.', 'success')
+                return redirect(url_for('index'))
+            else:
+                print("Invalid password")
         else:
-            flash('Invalid email or password.', 'error')
+            print("No user found with that email")
+        flash('Invalid email or password.', 'error')
     return render_template('login.html', title='Log In', form=form)
 
 
@@ -174,19 +233,17 @@ def delete_apartment(apartment_id):
 def apartment_detail(apartment_id):
     apartment = Apartment.query.get_or_404(apartment_id)
     return render_template('detail_apartments.html', apartment=apartment)
-
-
-# Apartment edit route
 @app.route('/apartment/<int:apartment_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_apartment(apartment_id):
     apartment = Apartment.query.get_or_404(apartment_id)
     if not current_user.is_admin:
-        flash('You do not have permission to edit this apartment.')
+        flash('You do not have permission to edit this apartment.', 'danger')
         return redirect(url_for('apartment_detail', apartment_id=apartment_id))
 
     form = ApartmentForm(obj=apartment)
     if form.validate_on_submit():
+        print("Form is valid")  # Debugging statement
         # Update fields
         apartment.name = form.name.data
         apartment.location = form.location.data
@@ -202,11 +259,15 @@ def edit_apartment(apartment_id):
             apartment.photo = filename
 
         db.session.commit()
-        flash('Apartment updated successfully.')
+        flash('Apartment updated successfully.', 'success')
         return redirect(url_for('apartment_detail', apartment_id=apartment.id))
+    else:
+        print("Form errors: ", form.errors)  # Debugging statement
 
-    return render_template('edit_apartment.html', form=form,
-                           apartment=apartment)
+    if form.errors:
+        flash('There are errors in the form. Please correct them and try again.', 'danger')
+
+    return render_template('edit_apartment.html', form=form, apartment=apartment)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
