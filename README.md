@@ -29,7 +29,20 @@ This is a web application for listing and managing apartments. Users can view ap
 - pip (Python package installer)
 - SQLite (installed with Python)
 
+## Features 
+- Features
+- User registration and login.
+- User profile management with profile image upload.
+- Listing apartments with search functionality.
+- Detailed view of each apartment.
+- Admin functionalities for creating, editing, and deleting apartment listings.
+- Integration with Mapbox for location input and display.
+
 ## Installation
+### Prerequisites
+- Python 3.11 or later
+- pip (Python package installer)
+- SQLite (installed with Python)
 
 ### Clone the repository:
 ``` bash
@@ -60,6 +73,30 @@ flask db upgrade
 cd backend
 python main.py
 ``` 
+## Admin Installation
+Creating an Admin User
+Register a new admin user:
+
+- Go to http://127.0.0.1:5000/register
+- Fill in the registration form with your details and submit.
+- After registration, access your  database and update the is_admin field of your user to True.
+``` bash 
+is_admin = db.Column(db.Boolean, default=True)
+```
+## Log in as admin:
+Use the registered admin credentials to access admin features such as creating, editing, and deleting apartment listings.
+
+## Regular User Installation
+- Registering and Logging In as a Regular User
+- Register a new regular user:
+
+- Go to http://127.0.0.1:5000/register
+- Fill in the registration form with your details and submit.
+- Log in:
+
+- Go to http://127.0.0.1:5000/login
+- Enter your registered email and password to log in.
+- Regular users can view apartment listings and details but cannot perform administrative tasks.
 
 ### Access the application in your web browser:
 http://127.0.0.1:5000
